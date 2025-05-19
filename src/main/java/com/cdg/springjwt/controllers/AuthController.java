@@ -1,12 +1,11 @@
 package com.cdg.springjwt.controllers;
 
-import com.cdg.springjwt.models.ERole;
-import com.cdg.springjwt.models.Role;
-import com.cdg.springjwt.models.User;
+import com.cdg.springjwt.models.*;
 import com.cdg.springjwt.payload.request.LoginRequest;
 import com.cdg.springjwt.payload.request.SignupRequest;
 import com.cdg.springjwt.payload.response.JwtResponse;
 import com.cdg.springjwt.payload.response.MessageResponse;
+import com.cdg.springjwt.repository.FilialeRepository;
 import com.cdg.springjwt.repository.RoleRepository;
 import com.cdg.springjwt.repository.UserRepository;
 import com.cdg.springjwt.security.jwt.JwtUtils;
@@ -29,6 +28,7 @@ import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -39,6 +39,9 @@ public class AuthController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    FilialeRepository filialeRepository;
 
     @Autowired
     RoleRepository roleRepository;
@@ -138,7 +141,14 @@ public class AuthController {
             });
         }
 
+        Set<Filiale> userFiliales = signUpRequest.getFiliales().stream()
+                .map(filiale -> filialeRepository.findByName(EFiliale.valueOf(filiale)).orElseThrow(() -> new RuntimeException("ERROR: filiales not provided")))
+                .collect(Collectors.toSet());
+        if (userFiliales.isEmpty()) throw new RuntimeException("ERROR: filiales not provided");
+        user.setFiliales(userFiliales);
         user.setRoles(roles);
+        user.setNom(signUpRequest.getNom());
+        user.setPrenom(signUpRequest.getPrenom());
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
