@@ -25,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class AuthController {
     JwtUtils jwtUtils;
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(
+    public ResponseEntity<JwtResponse> authenticateUser(
             @Valid @RequestBody LoginRequest loginRequest,
             HttpServletResponse response
     ) {
@@ -63,6 +64,9 @@ public class AuthController {
                         loginRequest.getPassword()
                 )
         );
+
+        User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new RuntimeException("ERROR: no user found with userName : " + loginRequest.getUsername()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -83,13 +87,19 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        return ResponseEntity.ok(new JwtResponse(
-                null, // On ne renvoie plus le token
+        List<String> filiales = new ArrayList<>();
+        for (Filiale filiale : user.getFiliales()) {
+            String toString = filiale.getName().toString();
+            filiales.add(toString);
+        }
+        JwtResponse body = new JwtResponse(
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                roles
-        ));
+                roles,
+                filiales
+        );
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/signup")
