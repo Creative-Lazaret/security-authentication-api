@@ -9,10 +9,10 @@
 		<version>3.1.0</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.cdg</groupId>
-	<artifactId>security-authentication-api</artifactId>
-	<version>0.0.5</version>
-	<name>security-authentication-api</name>
+	<groupId>com.cdg.madef</groupId>
+	<artifactId>madaef-backend</artifactId>
+	<version>0.0.2</version>
+	<name>madaef-backend</name>
 
 	<properties>
 		<java.version>17</java.version>

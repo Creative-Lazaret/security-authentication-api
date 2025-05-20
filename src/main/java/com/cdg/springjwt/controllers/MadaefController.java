@@ -33,7 +33,7 @@ public class MadaefController {
 
 
     @GetMapping("/myCollaborateurs")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> getCollaborateurs(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "10") int size) {
 

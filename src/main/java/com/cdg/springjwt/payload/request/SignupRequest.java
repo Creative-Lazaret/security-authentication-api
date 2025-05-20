@@ -26,7 +26,6 @@ public class SignupRequest {
     @Email
     private String email;
 
-    @NotEmpty
     private Set<String> role = new HashSet<>();
     @NotEmpty
     private Set<String> filiales = new HashSet<>();
