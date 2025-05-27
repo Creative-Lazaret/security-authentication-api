@@ -1,6 +1,8 @@
 package com.cdg.springjwt.controllers;
 
 import com.cdg.springjwt.models.EFiliale;
+import com.cdg.springjwt.models.Filiale;
+import com.cdg.springjwt.models.User;
 import com.cdg.springjwt.repository.CollaborateurRepository;
 import com.cdg.springjwt.repository.UserRepository;
 import jakarta.persistence.criteria.Predicate;
@@ -9,10 +11,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -27,26 +32,60 @@ public class MadaefController {
     CollaborateurRepository collaborateurRepository;
 
 
-    //    @GetMapping("/myCollaborateurs")
-//    @PreAuthorize("hasRole('USER')")
-//    public ResponseEntity<?> getCollaborateurs(@RequestParam(defaultValue = "0") int page,
-//                                               @RequestParam(defaultValue = "10") int size) {
-//
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
-//        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("ERROR: user not found"));
-//        List<Long> filiales = user.getFiliales().stream().map(Filiale::getId).collect(Collectors.toList());
-//        Page<Collaborateur> employesParFiliale = getEmployesParFiliale(filiales, page, size);
-//
-//        return ResponseEntity.ok(employesParFiliale);
-//
-//    }
-//
-//    public Page<Collaborateur> getEmployesParFiliale(List<Long> filiales, int page, int size) {
-//        Pageable pageable = PageRequest.of(page, size, Sort.by("colabNom").ascending());
-//        return collaborateurRepository.findByFiliale_IdIn(filiales, pageable);
-//    }
     @GetMapping("/myCollaborateurs")
+    @PreAuthorize("hasRole('USER')")
+    public Page<CollaborateurDTO> getCollaborateurs(@RequestParam(required = false) String nomPrenom,
+                                                    @RequestParam(required = false) String domaine,
+                                                    @RequestParam(required = false) String metier,
+                                                    @RequestParam(required = false) String typeDisponibilite,
+                                                    @RequestParam(required = false) Boolean disponible,
+                                                    @PageableDefault(size = 10) Pageable pageable) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("ERROR: user not found"));
+        List<Long> filiales = user.getFiliales().stream().map(Filiale::getId).collect(Collectors.toList());
+
+        return collaborateurRepository.findAll((root, query, cb) -> {
+                    List<Predicate> predicates = new ArrayList<>();
+
+                    //retrieve only collabs that belongs to user's filiales
+                    filiales.forEach(filiale -> {
+                        predicates.add(cb.equal(root.get("filiale").get("id"), filiale));
+                    });
+
+                    if (nomPrenom != null && !nomPrenom.isBlank()) {
+                        String pattern = "%" + nomPrenom.toLowerCase() + "%";
+                        Predicate nom = cb.like(cb.lower(root.get("colabNom")), pattern);
+                        Predicate prenom = cb.like(cb.lower(root.get("colabPrenom")), pattern);
+                        predicates.add(cb.or(nom, prenom));
+                    }
+
+
+                    if (domaine != null && !domaine.isBlank()) {
+                        predicates.add(cb.equal(cb.lower(root.get("domaine")), domaine.toLowerCase()));
+                    }
+
+                    if (metier != null && !metier.isBlank()) {
+                        predicates.add(cb.equal(cb.lower(root.get("metier")), metier.toLowerCase()));
+                    }
+
+                    if (typeDisponibilite != null && !typeDisponibilite.isBlank()) {
+                        predicates.add(cb.equal(cb.lower(root.get("typeDisponibilite")), typeDisponibilite.toLowerCase()));
+                    }
+
+                    if (disponible != null) {
+                        predicates.add(cb.equal(root.get("disponible"), disponible));
+                    }
+
+                    return cb.and(predicates.toArray(new Predicate[0]));
+                }, pageable)
+                .map(CollaborateurDTO::from);
+
+
+    }
+
+    @GetMapping("/searchCollaborateurs")
     @PreAuthorize("hasRole('USER')")
     public Page<CollaborateurDTO> searchCollaborateurs(
             @RequestParam(required = false) String nomPrenom,
