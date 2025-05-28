@@ -10,16 +10,20 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CollaborateurRepository extends JpaRepository<Collaborateur, Long>, JpaSpecificationExecutor<Collaborateur> {
 
     @EntityGraph(attributePaths = {"filiale"})
     Page<Collaborateur> findAll(Specification<Collaborateur> spec, Pageable pageable);
+
     // Alternative avec pagination
 //    Page<Collaborateur> findByFiliale_Id(String filialeId, Pageable pageable);
 
     Page<Collaborateur> findByFiliale_IdIn(List<Long> filialeIds, Pageable pageable);
+
+    Optional<Collaborateur> findCollaborateurByColabMatricule(String matricule);
 
 //    @Query("SELECT c FROM Collaborateur c WHERE c.filiale.id = :filialeId")
 //    Page<Collaborateur> findAllByFilialeId(@Param("filialeId") String filialeId, Pageable pageable);

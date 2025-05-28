@@ -1,5 +1,6 @@
 package com.cdg.springjwt.controllers;
 
+import com.cdg.springjwt.models.Collaborateur;
 import com.cdg.springjwt.models.EFiliale;
 import com.cdg.springjwt.models.Filiale;
 import com.cdg.springjwt.models.User;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -137,5 +140,33 @@ public class MadaefController {
                 }, pageable)
                 .map(CollaborateurDTO::from);
     }
+
+    @PutMapping("/myCollaborateurs/{matricule}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> updateCollaborateur(@PathVariable String matricule,
+                                                 @RequestBody Collaborateur updated) {
+        Optional<Collaborateur> optional = collaborateurRepository.findCollaborateurByColabMatricule(matricule);
+        if (optional.isEmpty()) return ResponseEntity.notFound().build();
+
+        Collaborateur existing = optional.get();
+
+        existing.setColabNom(updated.getColabNom());
+        existing.setColabPrenom(updated.getColabPrenom());
+        existing.setDomaine(updated.getDomaine());
+        existing.setMetier(updated.getMetier());
+        existing.setMaitrise(updated.getMaitrise());
+        existing.setTypeDisponibilite(updated.getTypeDisponibilite());
+        existing.setDisponible(updated.getDisponible());
+        existing.setPeriodeDisponibilite(updated.getPeriodeDisponibilite());
+        existing.setNombreMission(updated.getNombreMission());
+        existing.setRating(updated.getRating());
+        existing.setCv(updated.getCv());
+        existing.setAncienneteGroupe(updated.getAncienneteGroupe());
+        existing.setAncienneteFiliale(updated.getAncienneteFiliale());
+
+        collaborateurRepository.save(existing);
+        return ResponseEntity.ok().build();
+    }
+
 
 }
