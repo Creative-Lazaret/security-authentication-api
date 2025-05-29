@@ -53,9 +53,7 @@ public class MadaefController {
                     List<Predicate> predicates = new ArrayList<>();
 
                     //retrieve only collabs that belongs to user's filiales
-                    filiales.forEach(filiale -> {
-                        predicates.add(cb.equal(root.get("filiale").get("id"), filiale));
-                    });
+                    predicates.add(root.get("filiale").get("id").in(filiales));
 
                     if (nomPrenom != null && !nomPrenom.isBlank()) {
                         String pattern = "%" + nomPrenom.toLowerCase() + "%";
