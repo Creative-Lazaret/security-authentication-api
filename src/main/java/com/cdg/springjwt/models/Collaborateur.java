@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @Entity
@@ -55,7 +57,16 @@ public class Collaborateur {
     private Integer ancienneteGroupe; // en mois ou années selon convention
 
     @Column(name = "anciennete_filiale")
-    private Integer ancienneteFiliale;
+    private String ancienneteFiliale;
+
+    @Column(name = "date_entree_filiale")
+    private Date dateEntreeFiliale;
+
+    @Column(name = "date_entree_group")
+    private Date dateEntreeGroup;
+
+    @Column(name = "contact_rh")
+    private String contactRh;
 
 
 }

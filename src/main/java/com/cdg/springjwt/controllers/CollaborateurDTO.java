@@ -3,6 +3,10 @@ package com.cdg.springjwt.controllers;
 import com.cdg.springjwt.models.Collaborateur;
 import com.cdg.springjwt.models.Filiale;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Optional;
 
 public record CollaborateurDTO(
@@ -18,9 +22,12 @@ public record CollaborateurDTO(
         Integer nombreMission,
         String rating,
         String cv,
-        Integer ancienneteGroupe,
-        Integer ancienneteFiliale,
-        String filiale
+        String ancienneteGroupe,
+        String ancienneteFiliale,
+        String filiale,
+        String contactRh,
+        Date dateEntreeFiliale,
+        Date entreEntreeGroup
 ) {
     public static CollaborateurDTO from(Collaborateur c) {
         return new CollaborateurDTO(
@@ -36,13 +43,29 @@ public record CollaborateurDTO(
                 c.getNombreMission(),
                 c.getRating(),
                 c.getCv(),
-                c.getAncienneteGroupe(),
-                c.getAncienneteFiliale(),
+                computeAnciente(c.getDateEntreeGroup()),
+                computeAnciente(c.getDateEntreeFiliale()),
                 Optional.ofNullable(c.getFiliale())
                         .map(Filiale::getName)
                         .map(Enum::name)
-                        .orElse(null)
-
+                        .orElse(null),
+                c.getContactRh(),
+                c.getDateEntreeFiliale(),
+                c.getDateEntreeGroup()
         );
+    }
+
+    private static String computeAnciente(Date dateEntree) {
+        // Conversion vers LocalDate
+        LocalDate localDateEntree = dateEntree.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        // Date actuelle
+        LocalDate aujourdHui = LocalDate.now();
+
+        // Calcul de l’ancienneté
+        Period anciente = Period.between(localDateEntree, aujourdHui);
+        return anciente.getYears() + " an " + anciente.getMonths() +" mois";
     }
 }
