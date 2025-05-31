@@ -19,7 +19,7 @@ public record CollaborateurDTO(
         String typeDisponibilite,
         Boolean disponible,
         String periodeDisponibilite,
-        Integer nombreMission,
+//        Integer nombreMission,
         String rating,
         String cv,
         String ancienneteGroupe,
@@ -27,7 +27,7 @@ public record CollaborateurDTO(
         String filiale,
         String contactRh,
         Date dateEntreeFiliale,
-        Date entreEntreeGroup
+        Date dateEntreeGroup
 ) {
     public static CollaborateurDTO from(Collaborateur c) {
         return new CollaborateurDTO(
@@ -40,7 +40,7 @@ public record CollaborateurDTO(
                 c.getTypeDisponibilite(),
                 c.getDisponible(),
                 c.getPeriodeDisponibilite(),
-                c.getNombreMission(),
+//                c.getNombreMission(),
                 c.getRating(),
                 c.getCv(),
                 computeAnciente(c.getDateEntreeGroup()),
@@ -56,16 +56,21 @@ public record CollaborateurDTO(
     }
 
     private static String computeAnciente(Date dateEntree) {
-        // Conversion vers LocalDate
-        LocalDate localDateEntree = dateEntree.toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+        if (dateEntree != null) {
+            // Conversion vers LocalDate
+            LocalDate localDateEntree = dateEntree.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
 
-        // Date actuelle
-        LocalDate aujourdHui = LocalDate.now();
+            // Date actuelle
+            LocalDate aujourdHui = LocalDate.now();
 
-        // Calcul de l’ancienneté
-        Period anciente = Period.between(localDateEntree, aujourdHui);
-        return anciente.getYears() + " an " + anciente.getMonths() +" mois";
+            // Calcul de l’ancienneté
+            Period anciente = Period.between(localDateEntree, aujourdHui);
+            return anciente.getYears() + " an " + anciente.getMonths() + " mois";
+        }
+
+        return null;
+
     }
 }

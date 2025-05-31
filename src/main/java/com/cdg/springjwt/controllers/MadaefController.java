@@ -156,11 +156,11 @@ public class MadaefController {
         existing.setTypeDisponibilite(updated.getTypeDisponibilite());
         existing.setDisponible(updated.getDisponible());
         existing.setPeriodeDisponibilite(updated.getPeriodeDisponibilite());
-        existing.setNombreMission(updated.getNombreMission());
+//        existing.setNombreMission(updated.getNombreMission());
         existing.setRating(updated.getRating());
         existing.setCv(updated.getCv());
-        existing.setAncienneteGroupe(updated.getAncienneteGroupe());
-        existing.setAncienneteFiliale(updated.getAncienneteFiliale());
+        existing.setDateEntreeFiliale(updated.getDateEntreeFiliale());
+        existing.setDateEntreeGroup(updated.getDateEntreeGroup());
 
         collaborateurRepository.save(existing);
         return ResponseEntity.ok().build();

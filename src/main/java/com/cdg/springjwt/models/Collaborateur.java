@@ -1,5 +1,6 @@
 package com.cdg.springjwt.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Table(name = "collaborateurs")
 public class Collaborateur {
 
@@ -44,8 +46,6 @@ public class Collaborateur {
     @Column(name = "periode_disponibilite")
     private String periodeDisponibilite; // Ex: "Mai 2025", ou date de début/fin
 
-    @Column(name = "nombre_mission")
-    private Integer nombreMission;
 
     @Column(name = "rating")
     private String rating; // ou Integer si c’est un score numérique
@@ -53,11 +53,6 @@ public class Collaborateur {
     @Column(name = "cv")
     private String cv; // chemin fichier ou base64 ou lien
 
-    @Column(name = "anciennete_groupe")
-    private Integer ancienneteGroupe; // en mois ou années selon convention
-
-    @Column(name = "anciennete_filiale")
-    private String ancienneteFiliale;
 
     @Column(name = "date_entree_filiale")
     private Date dateEntreeFiliale;
