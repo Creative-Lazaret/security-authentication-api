@@ -1,6 +1,7 @@
 package com.cdg.springjwt.repository;
 
-import com.cdg.springjwt.models.Collaborateur;
+
+import com.cdg.springjwt.models.Mission;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,16 +10,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Repository
-public interface CollaborateurRepository extends JpaRepository<Collaborateur, Long>, JpaSpecificationExecutor<Collaborateur> {
+public interface MissionRepository extends JpaRepository<Mission, Long>, JpaSpecificationExecutor<Mission> {
 
     @EntityGraph(attributePaths = {"filiale"})
-    Page<Collaborateur> findAll(Specification<Collaborateur> spec, Pageable pageable);
-
-    Page<Collaborateur> findByFiliale_IdIn(List<Long> filialeIds, Pageable pageable);
-
-    Optional<Collaborateur> findCollaborateurByColabMatricule(String matricule);
+    Page<Mission> findAll(Specification<Mission> spec, Pageable pageable);
 }
