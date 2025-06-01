@@ -3,7 +3,7 @@ package com.cdg.springjwt.controllers;
 
 import com.cdg.springjwt.models.Filiale;
 import com.cdg.springjwt.models.Mission;
-import com.cdg.springjwt.models.StatutMission;
+import com.cdg.springjwt.models.EStatutMission;
 
 import java.time.LocalDate;
 
@@ -39,7 +39,7 @@ public record MissionFullDTO(
     }
 
     private static String getStatus(Mission mission) {
-        return mission.getStatut().equals(StatutMission.EN_COURS) ? "En cours" : mission.getStatut().name();
+        return mission.getStatut().equals(EStatutMission.EN_COURS) ? "En cours" : mission.getStatut().name();
     }
 
     public record FilialeDTO(

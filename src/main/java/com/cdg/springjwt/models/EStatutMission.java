@@ -1,6 +1,6 @@
 package com.cdg.springjwt.models;
 
-public enum StatutMission {
+public enum EStatutMission {
     OUVERTE,
     EN_COURS,
     TERMINEE

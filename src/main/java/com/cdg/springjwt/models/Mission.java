@@ -40,7 +40,7 @@ public class Mission {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private StatutMission statut = StatutMission.OUVERTE;
+    private EStatutMission statut = EStatutMission.OUVERTE;
 //
 //    @Column(name = "filiale_emettrice", nullable = false)
 //    private String filiale; // SDS, MSE, MADEAEF, etc.
