@@ -27,7 +27,7 @@ public record MissionFullDTO(
                 mission.getCode(),
                 mission.getTitre(),
                 mission.getMetier(),
-                mission.getDetails(),
+                mission.getDescription(),
                 mission.getDomaine(),
                 mission.getDateDebut(),
                 mission.getDateFin(),

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "missions")
@@ -27,8 +29,8 @@ public class Mission {
     @Column(nullable = false)
     private String metier;
 
-    @Column(nullable = false)
-    private String details;
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     private String domaine;
 
@@ -41,17 +43,21 @@ public class Mission {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private EStatutMission statut = EStatutMission.OUVERTE;
-//
-//    @Column(name = "filiale_emettrice", nullable = false)
-//    private String filiale; // SDS, MSE, MADEAEF, etc.
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "filiale_id", nullable = false)
     private Filiale filiale;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collaborateur_id")
-    private Collaborateur collaborateurAssigne;
+    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL)
+    private Set<Objectif> objectifs = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "mission_ressources",
+            joinColumns = @JoinColumn(name = "mission_id"),
+            inverseJoinColumns = @JoinColumn(name = "colab_matricule")
+    )
+    private Set<Collaborateur> ressources = new HashSet<>();
 
     // Audit
     private LocalDate dateCreation;
