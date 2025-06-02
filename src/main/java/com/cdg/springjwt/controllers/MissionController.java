@@ -153,7 +153,7 @@ public class MissionController {
                     .domaine(createMissionDTO.getDomaine())
                     .dateDebut(createMissionDTO.getDateDebut())
                     .dateFin(createMissionDTO.getDateFin())
-                    .statut(createMissionDTO.getStatut() != null ? createMissionDTO.getStatut() : EStatutMission.OUVERTE)
+                    .statut(EStatutMission.OUVERTE)
                     .filiale(filiale)
                     .dateCreation(LocalDate.now())
                     .creePar(createdByFullName)
@@ -214,7 +214,7 @@ public class MissionController {
             mission.setDomaine(updatedDTO.getDomaine());
             mission.setDateDebut(updatedDTO.getDateDebut());
             mission.setDateFin(updatedDTO.getDateFin());
-            mission.setStatut(updatedDTO.getStatut());
+//            mission.setStatut(updatedDTO.getStatut());
             mission.setFiliale(filiale);
 
             // Facultatif : mettre à jour les ressources si fournies

@@ -30,7 +30,7 @@ public class CreateMissionDTO {
 
     private LocalDate dateFin;
 
-    private EStatutMission statut = EStatutMission.OUVERTE;
+//    private EStatutMission statut = EStatutMission.OUVERTE;
 
     @NotNull(message = "La filiale est obligatoire")
     private Long filialeId;
