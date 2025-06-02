@@ -1,6 +1,6 @@
 package com.cdg.springjwt.services;
 
-import com.cdg.springjwt.controllers.MissionFullDTO;
+import com.cdg.springjwt.controllers.dto.MissionFullDTO;
 import com.cdg.springjwt.models.Mission;
 import com.cdg.springjwt.repository.MissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;

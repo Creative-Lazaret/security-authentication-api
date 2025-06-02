@@ -1,4 +1,4 @@
-package com.cdg.springjwt.controllers;
+package com.cdg.springjwt.controllers.dto;
 
 import com.cdg.springjwt.models.Collaborateur;
 import com.cdg.springjwt.models.Filiale;
