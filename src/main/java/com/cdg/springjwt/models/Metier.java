@@ -14,6 +14,9 @@ public class Metier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "code", nullable = true, unique = true)
+    private String code;
+
     @Column(nullable = false, unique = true)
     private String libelle;
 

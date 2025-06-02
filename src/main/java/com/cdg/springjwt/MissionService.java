@@ -19,4 +19,5 @@ public class MissionService {
         return missionRepository.findAll(spec, pageable).map(MissionFullDTO::from);
     }
 
+
 }
