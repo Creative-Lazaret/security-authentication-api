@@ -5,6 +5,7 @@ import com.cdg.springjwt.models.*;
 import com.cdg.springjwt.repository.CollaborateurRepository;
 import com.cdg.springjwt.repository.DemandeAssignationMissionRepository;
 import com.cdg.springjwt.repository.MissionRepository;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,9 +19,11 @@ public class DemandeAssignationService {
     private final DemandeAssignationMissionRepository demandeRepo;
     private final MissionRepository missionRepo;
     private final CollaborateurRepository collaborateurRepo;
+    private final PdfGenerationService pdfService;
+    private final MailService emailService;
 
     @Transactional
-    public void creerDemande(CreateDemandeAssignationDTO dto, String usernameDemandeur) {
+    public void creerDemande(CreateDemandeAssignationDTO dto, String usernameDemandeur) throws MessagingException {
         Mission mission = missionRepo.findById(dto.getMissionId())
                 .orElseThrow(() -> new RuntimeException("Mission introuvable"));
 
@@ -46,9 +49,9 @@ public class DemandeAssignationService {
         mission.setStatut(EStatutMission.EN_ATTENTE_APPROBABTION);
         missionRepo.save(mission);
 
-        // Générer PDF et envoyer par email
-//        byte[] pdf = pdfService.generateDemandeAssignationPdf(demande);
-//        emailService.sendDemandeAssignationEmail(collaborateur.getContactRh(), pdf);
+//         Générer PDF et envoyer par email
+        byte[] pdf = pdfService.generateDemandePdf(mission,collaborateur);
+        emailService.envoyerDemandeAvecPdf(collaborateur.getContactRh(), pdf, collaborateur.getColabMatricule()+".pdf");
     }
 
 
