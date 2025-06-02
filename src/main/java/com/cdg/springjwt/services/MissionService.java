@@ -1,4 +1,4 @@
-package com.cdg.springjwt;
+package com.cdg.springjwt.services;
 
 import com.cdg.springjwt.controllers.MissionFullDTO;
 import com.cdg.springjwt.models.Mission;

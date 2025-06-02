@@ -61,7 +61,9 @@ public class AuthController {
         Optional<User> currentUser = userRepository.findByUsername(userDetails.getUsername());
         if (currentUser.isEmpty()) {return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();}
 
-        return ResponseEntity.ok(currentUser.get());
+        User body = currentUser.get();
+        body.setPassword("null");
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/signin")

@@ -29,7 +29,6 @@ public class Mission {
     @Column(nullable = false)
     private String metier;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String domaine;

@@ -15,4 +15,9 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, JpaSpec
 
     @EntityGraph(attributePaths = {"filiale"})
     Page<Mission> findAll(Specification<Mission> spec, Pageable pageable);
+
+    boolean existsByCode(String code);
+
+    Long countByCodeStartingWith(String prefix);
+
 }
