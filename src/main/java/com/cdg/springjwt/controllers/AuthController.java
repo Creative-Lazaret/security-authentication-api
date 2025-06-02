@@ -28,10 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -57,11 +54,14 @@ public class AuthController {
     JwtUtils jwtUtils;
 
     @GetMapping("/me")
-    public ResponseEntity<Void> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).build();
+        Optional<User> currentUser = userRepository.findByUsername(userDetails.getUsername());
+        if (currentUser.isEmpty()) {return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();}
+
+        return ResponseEntity.ok(currentUser.get());
     }
 
     @PostMapping("/signin")
