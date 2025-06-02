@@ -181,4 +181,57 @@ public class MissionController {
                     .body("Erreur lors de la création de la mission: " + e.getMessage());
         }
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> updateMission(@PathVariable Long id,
+                                           @Valid @RequestBody CreateMissionDTO updatedDTO,
+                                           Authentication authentication) {
+        try {
+            Mission mission = missionRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Mission non trouvée avec l'id: " + id));
+
+            // Vérifier que l'utilisateur a le droit de modifier cette mission
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            boolean appartientFiliale = userDetails.getFilialesId().stream()
+                    .anyMatch(f -> f.equals(updatedDTO.getFilialeId()));
+
+            if (!appartientFiliale) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Vous n'avez pas le droit de modifier une mission d'une autre filiale.");
+            }
+
+            // Récupérer la nouvelle filiale
+            Filiale filiale = filialeRepository.findById(updatedDTO.getFilialeId())
+                    .orElseThrow(() -> new RuntimeException("Filiale introuvable avec l'ID: " + updatedDTO.getFilialeId()));
+
+            // Mettre à jour les champs
+            mission.setTitre(updatedDTO.getTitre());
+            mission.setMetier(updatedDTO.getMetier());
+            mission.setDescription(updatedDTO.getDescription());
+            mission.setDomaine(updatedDTO.getDomaine());
+            mission.setDateDebut(updatedDTO.getDateDebut());
+            mission.setDateFin(updatedDTO.getDateFin());
+            mission.setStatut(updatedDTO.getStatut());
+            mission.setFiliale(filiale);
+
+            // Facultatif : mettre à jour les ressources si fournies
+            if (updatedDTO.getRessourceIds() != null) {
+                Set<Collaborateur> ressources = new HashSet<>();
+                for (Long ressourceId : updatedDTO.getRessourceIds()) {
+                    collaborateurRepository.findById(ressourceId)
+                            .ifPresent(ressources::add);
+                }
+                mission.setRessources(ressources);
+            }
+
+            Mission updatedMission = missionRepository.save(mission);
+
+            return ResponseEntity.ok(MissionFullDTO.from(updatedMission));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de la mise à jour de la mission: " + e.getMessage());
+        }
+    }
+
 }
