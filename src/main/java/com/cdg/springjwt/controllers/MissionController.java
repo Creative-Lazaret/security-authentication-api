@@ -63,8 +63,13 @@ public class MissionController {
 
                     if (titre != null && !titre.isBlank()) {
                         String pattern = "%" + titre.toLowerCase() + "%";
-                        predicates.add(cb.like(cb.lower(root.get("titre")), pattern));
+
+                        Predicate predicatTitre = cb.like(cb.lower(root.get("titre")), pattern);
+                        Predicate predicatCode = cb.like(cb.lower(root.get("code")), pattern);
+
+                        predicates.add(cb.or(predicatTitre, predicatCode));
                     }
+
 
                     if (filiale != null && !filiale.isBlank()) {
                         try {
