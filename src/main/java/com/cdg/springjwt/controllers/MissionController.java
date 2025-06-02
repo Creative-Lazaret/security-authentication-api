@@ -1,5 +1,6 @@
 package com.cdg.springjwt.controllers;
 
+import com.cdg.springjwt.security.services.UserDetailsImpl;
 import com.cdg.springjwt.services.MissionCodeGeneratorService;
 import com.cdg.springjwt.models.EFiliale;
 import com.cdg.springjwt.models.EStatutMission;
@@ -136,6 +137,11 @@ public class MissionController {
             Filiale filiale = filialeRepository.findById(createMissionDTO.getFilialeId())
                     .orElseThrow(() -> new RuntimeException("Filiale introuvable avec l'ID: " + createMissionDTO.getFilialeId()));
 
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+            String createdByFullName = userDetails.getPrenom() + " " + userDetails.getNom();
+
+
             // Créer la mission
             Mission mission = Mission.builder()
                     .code(missionCode)
@@ -148,7 +154,7 @@ public class MissionController {
                     .statut(createMissionDTO.getStatut() != null ? createMissionDTO.getStatut() : EStatutMission.OUVERTE)
                     .filiale(filiale)
                     .dateCreation(LocalDate.now())
-                    .creePar(authentication.getName())
+                    .creePar(createdByFullName)
                     .objectifs(new HashSet<>())
                     .ressources(new HashSet<>())
                     .build();

@@ -10,6 +10,8 @@ public class JwtResponse {
     private String type = "Bearer";
     private Long id;
     private String username;
+    private String nom;
+    private String prenom;
     private String email;
     private List<String> filiales;
     private List<String> roles;
@@ -22,12 +24,14 @@ public class JwtResponse {
         this.roles = roles;
     }
 
-    public JwtResponse(Long id, String username, String email, List<String> roles, List<String> filiales) {
+    public JwtResponse(Long id, String username, String email, String nom, String prenom, List<String> roles, List<String> filiales) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.filiales = filiales;
         this.roles = roles;
+        this.nom = nom;
+        this.prenom = prenom;
     }
 
     public String getAccessToken() {
