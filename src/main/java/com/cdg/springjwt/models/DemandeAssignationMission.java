@@ -25,7 +25,10 @@ public class DemandeAssignationMission {
     private Collaborateur collaborateur;
 
     @ManyToOne(optional = false)
-    private Filiale filialeDemandeuse; // Filiale de l'utilisateur qui initie la demande
+    private Filiale filialeDemandeuse; // Filiale de la mission qui a demandé l'assignation et dans laquelle la mission sera exectuee'
+
+     @ManyToOne(optional = true)
+    private Filiale filialeReceptrice; // Filiale du collaborateur
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

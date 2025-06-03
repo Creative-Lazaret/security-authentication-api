@@ -5,6 +5,7 @@ import com.cdg.springjwt.models.*;
 import com.cdg.springjwt.repository.CollaborateurRepository;
 import com.cdg.springjwt.repository.DemandeAssignationMissionRepository;
 import com.cdg.springjwt.repository.MissionRepository;
+import com.cdg.springjwt.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ public class DemandeAssignationService {
 
     private final DemandeAssignationMissionRepository demandeRepo;
     private final MissionRepository missionRepo;
+    private final UserRepository userRepo;
     private final CollaborateurRepository collaborateurRepo;
     private final PdfGenerationService pdfService;
     private final MailService emailService;
@@ -41,20 +44,36 @@ public class DemandeAssignationService {
                         return new RuntimeException("Collaborateur introuvable");
                     });
 
+            if(mission.getFiliale()==collaborateur.getFiliale()){
+                log.error("Attempt to assign a collaborateur to a mission from its own filiale");
+                throw new IllegalStateException("Une demande ne peut être assignée à un collaborateur de sa filiale.");
+            }
             boolean existe = demandeRepo.existsByMissionAndStatut(mission, StatutDemande.EN_ATTENTE);
             if (existe) {
                 log.warn("Request already exists for mission: {} with status EN_ATTENTE", mission.getCode());
                 throw new IllegalStateException("Une demande est déjà en cours pour cette mission.");
             }
 
+            Optional<User> optionalUser = userRepo.findByUsername(usernameDemandeur);
+            if (optionalUser.isEmpty()) {
+                log.error("User not found with username: {}", usernameDemandeur);
+                throw new RuntimeException("L'utilisateur n'existe pas.");
+
+            }
+
+
+            User userDemandeur = optionalUser.get();
             DemandeAssignationMission demande = DemandeAssignationMission.builder()
                     .mission(mission)
                     .collaborateur(collaborateur)
                     .filialeDemandeuse(mission.getFiliale())
+                    .filialeReceptrice(collaborateur.getFiliale())
                     .statut(StatutDemande.EN_ATTENTE)
                     .dateCreation(LocalDateTime.now())
-                    .creePar(usernameDemandeur)
+                    .creePar(userDemandeur.getUsername())
                     .build();
+
+
 
             demandeRepo.save(demande);
             log.info("Demande assignation saved with ID: {}", demande.getId());
@@ -120,7 +139,7 @@ public class DemandeAssignationService {
             missionRepo.save(mission);
             collaborateurRepo.save(collaborateur);
 
-            log.info("Demande {} accepted successfully. Mission: {}, Collaborateur: {}", 
+            log.info("Demande {} accepted successfully. Mission: {}, Collaborateur: {}",
                     demandeId, mission.getCode(), collaborateur.getColabMatricule());
 
         } catch (IllegalArgumentException | IllegalStateException e) {
