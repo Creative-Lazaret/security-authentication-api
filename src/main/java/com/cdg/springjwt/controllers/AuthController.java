@@ -117,6 +117,25 @@ public class AuthController {
         return ResponseEntity.ok(body);
     }
 
+    @PostMapping("/signout")
+    public ResponseEntity<MessageResponse> signoutUser(HttpServletResponse response) {
+        // Créer un cookie expiré pour supprimer le token
+        ResponseCookie expiredCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(false) // ⬅️ Mets true en production avec HTTPS
+                .path("/")
+                .maxAge(0) // Cookie expiré immédiatement
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, expiredCookie.toString());
+
+        // Vider le contexte de sécurité (optionnel car stateless)
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(new MessageResponse("Déconnexion réussie"));
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
