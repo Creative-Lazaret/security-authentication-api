@@ -93,6 +93,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                   .requestMatchers("/api/parametrage/**").permitAll()
               .requestMatchers("/api/madaef/**").permitAll()
               .requestMatchers("/api/missions/**").permitAll()
+              .requestMatchers("/actuator/**").permitAll()
               .requestMatchers("/api/demande-assignation/**").permitAll()
               .anyRequest().authenticated()
         );
