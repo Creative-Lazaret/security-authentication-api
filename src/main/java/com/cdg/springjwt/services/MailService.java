@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,6 +16,9 @@ public class MailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     public void envoyerDemandeAvecPdf(String destinataire, byte[] pdfContent, String nomFichier) throws MessagingException {
         log.info("Sending email with PDF attachment to: {} with filename: {}", destinataire, nomFichier);
@@ -38,6 +42,7 @@ public class MailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            helper.setFrom(fromEmail);
             helper.setTo(destinataire);
             helper.setSubject("Nouvelle demande d'assignation de mission");
             helper.setText("Veuillez trouver ci-joint la demande d'assignation pour l'un de vos collaborateurs.", false);

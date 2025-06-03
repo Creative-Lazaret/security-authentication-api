@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.cdg.madef</groupId>
 	<artifactId>madaef-backend</artifactId>
-	<version>0.0.4</version>
+	<version>0.0.5</version>
 	<name>madaef-backend</name>
 
 	<properties>
