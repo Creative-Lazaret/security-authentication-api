@@ -340,6 +340,10 @@ public class DemandeAssignationService {
         dto.setCommentaire(demande.getCommentaire());
         dto.setCreePar(demande.getCreePar());
 
+        dto.setCollaborateurNom(demande.getCollaborateur().getColabNom());
+        dto.setCollaborateurPrenom(demande.getCollaborateur().getColabPrenom());
+        dto.setCollaborateurMatricule(demande.getCollaborateur().getColabMatricule());
+        dto.setCollaborateurMetier(demande.getMission().getMetier());
 
         // Mapping mission
         if (demande.getMission() != null) {
