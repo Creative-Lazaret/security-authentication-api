@@ -1,18 +1,25 @@
 package com.cdg.springjwt.services;
 
 import com.cdg.springjwt.controllers.dto.CreateDemandeAssignationDTO;
+import com.cdg.springjwt.controllers.dto.DemandeAssignationDTO;
 import com.cdg.springjwt.models.*;
 import com.cdg.springjwt.repository.CollaborateurRepository;
 import com.cdg.springjwt.repository.DemandeAssignationMissionRepository;
 import com.cdg.springjwt.repository.MissionRepository;
 import com.cdg.springjwt.repository.UserRepository;
 import jakarta.mail.MessagingException;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,7 +51,7 @@ public class DemandeAssignationService {
                         return new RuntimeException("Collaborateur introuvable");
                     });
 
-            if(mission.getFiliale()==collaborateur.getFiliale()){
+            if (mission.getFiliale() == collaborateur.getFiliale()) {
                 log.error("Attempt to assign a collaborateur to a mission from its own filiale");
                 throw new IllegalStateException("Une demande ne peut être assignée à un collaborateur de sa filiale.");
             }
@@ -70,9 +77,8 @@ public class DemandeAssignationService {
                     .filialeReceptrice(collaborateur.getFiliale())
                     .statut(StatutDemande.EN_ATTENTE)
                     .dateCreation(LocalDateTime.now())
-                    .creePar(userDemandeur.getUsername())
+                    .creePar(userDemandeur.getNom() + " " + userDemandeur.getPrenom())
                     .build();
-
 
 
             demandeRepo.save(demande);
@@ -193,4 +199,95 @@ public class DemandeAssignationService {
             throw new RuntimeException("Erreur lors du refus de la demande", e);
         }
     }
+    // Ajoutez ces méthodes à DemandeAssignationService
+
+    @Transactional(readOnly = true)
+    public Page<DemandeAssignationDTO> getDemandesRecues(
+            List<Long> filialesIds,
+            String statut,
+            String filialeDemandeuse,
+            String metier,
+            String domaine,
+            String collaborateurMatricule,
+            Pageable pageable) {
+
+        log.info("Fetching demandes reçues for filiales: {} with filters", filialesIds);
+
+        Specification<DemandeAssignationMission> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Filtre principal : demandes reçues par les filiales de l'utilisateur
+            predicates.add(root.get("filialeReceptrice").get("id").in(filialesIds));
+
+            // Filtres optionnels
+            if (statut != null && !statut.isBlank()) {
+                try {
+                    StatutDemande statutEnum = StatutDemande.valueOf(statut.toUpperCase());
+                    predicates.add(cb.equal(root.get("statut"), statutEnum));
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid status filter: {}", statut);
+                }
+            }
+
+            if (filialeDemandeuse != null && !filialeDemandeuse.isBlank()) {
+                try {
+                    EFiliale filiale = EFiliale.valueOf(filialeDemandeuse.toUpperCase());
+                    predicates.add(cb.equal(root.get("filialeDemandeuse").get("name"), filiale));
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid filiale filter: {}", filialeDemandeuse);
+                }
+            }
+
+            if (metier != null && !metier.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("mission").get("metier")),
+                        "%" + metier.toLowerCase() + "%"));
+            }
+
+            if (domaine != null && !domaine.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("mission").get("domaine")),
+                        "%" + domaine.toLowerCase() + "%"));
+            }
+
+            if (collaborateurMatricule != null && !collaborateurMatricule.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("collaborateur").get("colabMatricule")),
+                        "%" + collaborateurMatricule.toLowerCase() + "%"));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return demandeRepo.findAll(spec, pageable).map(DemandeAssignationDTO::from);
+    }
+
+//    @Transactional(readOnly = true)
+//    public Map<String, Long> getDemandesRecuesCount(List<Long> filialesIds) {
+//        log.info("Getting demandes count for filiales: {}", filialesIds);
+//
+//        Map<String, Long> counts = new HashMap<>();
+//
+//        for (Long filialeId : filialesIds) {
+//            long enAttente = demandeRepo.countByFilialeReceptriceIdAndStatut(filialeId, StatutDemande.EN_ATTENTE);
+//            long acceptees = demandeRepo.countByFilialeReceptriceIdAndStatut(filialeId, StatutDemande.ACCEPTEE);
+//            long refusees = demandeRepo.countByFilialeReceptriceIdAndStatut(filialeId, StatutDemande.REFUSEE);
+//
+//            counts.put("EN_ATTENTE_" + filialeId, enAttente);
+//            counts.put("ACCEPTEE_" + filialeId, acceptees);
+//            counts.put("REFUSEE_" + filialeId, refusees);
+//        }
+//
+//        // Totaux globaux
+//        long totalEnAttente = filialesIds.stream()
+//                .mapToLong(id -> demandeRepo.countByFilialeReceptriceIdAndStatut(id, StatutDemande.EN_ATTENTE))
+//                .sum();
+//
+//        counts.put("TOTAL_EN_ATTENTE", totalEnAttente);
+//        counts.put("TOTAL_ACCEPTEE", filialesIds.stream()
+//                .mapToLong(id -> demandeRepo.countByFilialeReceptriceIdAndStatut(id, StatutDemande.ACCEPTEE))
+//                .sum());
+//        counts.put("TOTAL_REFUSEE", filialesIds.stream()
+//                .mapToLong(id -> demandeRepo.countByFilialeReceptriceIdAndStatut(id, StatutDemande.REFUSEE))
+//                .sum());
+//
+//        return counts;
+//    }
 }
