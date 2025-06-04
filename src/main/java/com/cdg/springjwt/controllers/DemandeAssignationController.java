@@ -69,6 +69,34 @@ public class DemandeAssignationController {
         }
     }
 
+    @GetMapping("/emises")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Page<DemandeAssignationDTO>> getDemandesEmises(
+            @RequestParam(required = false) String statut,
+            @RequestParam(required = false) String filialeReceptrice,
+            @RequestParam(required = false) String metier,
+            @RequestParam(required = false) String domaine,
+            @RequestParam(required = false) String collaborateurMatricule,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "dateCreation") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @AuthenticationPrincipal UserDetailsImpl user) {
+
+        try {
+            Pageable pageable = PageRequest.of(page, size,
+                    Sort.by(sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy));
+
+            Page<DemandeAssignationDTO> demandes = demandeAssignationService.getDemandesEmises(
+                    user.getFilialesId(), statut, filialeReceptrice, metier, domaine, collaborateurMatricule, pageable);
+
+            return ResponseEntity.ok(demandes);
+        } catch (Exception e) {
+            log.error("Error while fetching demandes emises", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 //    @GetMapping("/recues/count")
 //    @PreAuthorize("hasRole('USER')")
 //    public ResponseEntity<Map<String, Long>> getDemandesRecuesCount(

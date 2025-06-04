@@ -259,6 +259,120 @@ public class DemandeAssignationService {
         return demandeRepo.findAll(spec, pageable).map(DemandeAssignationDTO::from);
     }
 
+    @Transactional(readOnly = true)
+    public Page<DemandeAssignationDTO> getDemandesEmises(
+            List<Long> filialesIds,
+            String statut,
+            String filialeReceptrice,
+            String metier,
+            String domaine,
+            String collaborateurMatricule,
+            Pageable pageable) {
+
+        log.info("Getting demandes emises for filiales: {} with filters - statut: {}, filialeReceptrice: {}, metier: {}, domaine: {}, collaborateur: {}",
+                filialesIds, statut, filialeReceptrice, metier, domaine, collaborateurMatricule);
+
+        // Utilisation de Specification pour créer une requête dynamique
+        Specification<DemandeAssignationMission> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Filtre par filiales demandeuses (où l'utilisateur émet les demandes)
+            if (filialesIds != null && !filialesIds.isEmpty()) {
+                predicates.add(root.get("filialeDemandeuse").get("id").in(filialesIds));
+            }
+
+            // Filtre par statut
+            if (statut != null && !statut.trim().isEmpty()) {
+                try {
+                    StatutDemande statutEnum = StatutDemande.valueOf(statut.toUpperCase());
+                    predicates.add(criteriaBuilder.equal(root.get("statut"), statutEnum));
+                } catch (IllegalArgumentException e) {
+                    log.warn("Statut invalide: {}", statut);
+                }
+            }
+
+            // Filtre par filiale réceptrice
+            if (filialeReceptrice != null && !filialeReceptrice.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("filialeReceptrice").get("name")),
+                        "%" + filialeReceptrice.toLowerCase() + "%"
+                ));
+            }
+
+            // Filtre par métier
+            if (metier != null && !metier.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("mission").get("metier")),
+                        "%" + metier.toLowerCase() + "%"
+                ));
+            }
+
+            // Filtre par domaine
+            if (domaine != null && !domaine.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("mission").get("domaine")),
+                        "%" + domaine.toLowerCase() + "%"
+                ));
+            }
+
+            // Filtre par matricule collaborateur
+            if (collaborateurMatricule != null && !collaborateurMatricule.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("mission").get("collaborateur").get("matricule")),
+                        "%" + collaborateurMatricule.toLowerCase() + "%"
+                ));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return demandeRepo.findAll(spec, pageable).map(this::mapToDTO);
+    }
+
+
+    private DemandeAssignationDTO mapToDTO(DemandeAssignationMission demande) {
+
+        DemandeAssignationDTO dto = DemandeAssignationDTO.builder().build();
+        dto.setId(demande.getId());
+        dto.setStatut(demande.getStatut());
+        dto.setDateCreation(demande.getDateCreation());
+        dto.setDateDecision(demande.getDateDecision());
+        dto.setCommentaire(demande.getCommentaire());
+        dto.setCreePar(demande.getCreePar());
+
+
+        // Mapping mission
+        if (demande.getMission() != null) {
+            dto.setMissionCode(demande.getMission().getCode());
+            dto.setMissionId(demande.getMission().getId());
+            dto.setMissionTitre(demande.getMission().getTitre());
+            dto.setMissionDescription(demande.getMission().getDescription());
+            dto.setMissionMetier(demande.getMission().getMetier());
+            dto.setMissionDomaine(demande.getMission().getDomaine());
+
+            // Mapping collaborateur
+            if (demande.getMission().getRessources() != null && !demande.getMission().getRessources().isEmpty()) {
+                demande.getMission().getRessources().forEach(c -> {
+                    dto.setCollaborateurNom(c.getColabNom());
+                    dto.setCollaborateurPrenom(c.getColabPrenom());
+                    dto.setCollaborateurMatricule(c.getColabMatricule());
+                });
+
+            }
+        }
+
+        // Mapping filiale demandeuse
+        if (demande.getFilialeDemandeuse() != null) {
+            dto.setFilialeDemandeuse(demande.getFilialeDemandeuse().getName().name());
+        }
+
+        // Mapping filiale réceptrice
+        if (demande.getFilialeReceptrice() != null) {
+            dto.setFilialeReceptrice(demande.getFilialeReceptrice().getName().name());
+        }
+
+        return dto;
+    }
 //    @Transactional(readOnly = true)
 //    public Map<String, Long> getDemandesRecuesCount(List<Long> filialesIds) {
 //        log.info("Getting demandes count for filiales: {}", filialesIds);
